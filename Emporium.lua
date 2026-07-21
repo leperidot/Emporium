@@ -388,7 +388,10 @@ SLASH_EMPORIUM1 = "/emporium"
 SlashCmdList["EMPORIUM"] = function(msg)
     local cmd = string.lower(string.gsub(msg or "", "^%s*(.-)%s*$", "%1"))
 
-    if cmd == "debug" then
+    if cmd == "browser" then
+        Browser:Show()
+ 
+    elseif cmd == "debug" then
         -- Toggle debug mode: prints detailed message processing info
         debugMode = not debugMode
         local state = debugMode and "|cff00cc00ON|r" or "|cffff4444OFF|r"
