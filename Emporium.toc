@@ -3,5 +3,6 @@
 ## Author: amorifis & leperidot
 ## Notes: A market helper addon that parse game chat to track trade offers
 ## Version: 0.0.0
+## SavedVariables: EmporiumDB
 
 Emporium.lua
