@@ -41,12 +41,6 @@ local LEVEL_CACHE_RANGE = 5  -- +/- range applied when using cached level
 -- HELPER FUNCTIONS
 -- ================================================================
 
--- Check if message contains WTS
-local function IsTradeMessage(msg)
-    local s = string.lower(msg)
-    return string.find(s, "wts")
-end
-
 -- Check if player's level is within the specified range
 local function PlayerLevelInRange(rangeMin, rangeMax)
     return UnitLevel("player") >= rangeMin and UnitLevel("player") <= rangeMax
@@ -60,8 +54,17 @@ local function GetLevelRange(level)
 end
 
 -- ================================================================
--- LEVEL RANGE PARSER
+-- MESSAGE PARSING
 -- ================================================================
+
+-- Check if message contains WTS
+local function ParseWTS(msg)
+    local parsedMsg, found, FOUND
+    parsedMsg, found = string.gsub(msg, "wts", "")
+    parsedMsg, FOUND = string.gsub(parsedMsg, "WTS", "")
+    return found + FOUND > 0, parsedMsg
+end
+
 -- Extracts level information from trade messages
 -- Supports formats:
 --   "28+-", "28+", "28-"       → 23-33 (±5 from base)
@@ -70,65 +73,67 @@ end
 --   "lvl 27", "lv 27"          → 22-32 (±5 from level)
 --   Bare numbers (fallback)    → ±5 from number
 -- Returns: rangeMin, rangeMax (or nil if no level found)
-
 local function ParseLevelRange(msg)
-    local s = string.lower(msg)
+    local s = msg
 
-    -- "28+-", "28+--", etc. (at end of message)
-    local level = string.match(s, "(%d+)%s*[%+%-][%+%-%/]+$")
-    if not level then
-        -- "28+-" followed by non-digit
-        level = string.match(s, "(%d+)%s*[%+%-][%+%-%/]+[^%d]")
+    local patterns = {
+        "(%d+)%s*[%+%-][%+%-%/]+$",     -- "28+-", "28+--", etc. (at end of message)
+        "(%d+)%s*[%+%-][%+%-%/]+[^%d]", -- "28+-" followed by non-digit
+        "[%+%-][%+%-%/]+(%d+)%s*$",     -- "+-28" at end
+        "(%d+)%s*\194\177",             -- "28±" (plus-minus symbol, UTF-8 encoded as \194\177)
+        "(%d+)%s*[%+%-]$",              -- "28+" or "28-" at end
+        "(%d+)%s*[%+%-][^%+%-%d/]",     -- "28+" or "28-" followed by non-digit/non-symbol
+        "lv[le]*%.?%s*(%d+)"            -- "lvl 27", "lv 27"
+    }
+
+    local level = nil
+    local parsedMsg = s
+    local _
+
+    for idx, pattern in patterns do
+        level = string.match(s, pattern)
+        parsedMsg, _ = string.gsub(s, pattern, "")
+        if level ~= nil then
+            break
+        end
     end
-    if not level then
-        -- "+-28" at end
-        level = string.match(s, "[%+%-][%+%-%/]+(%d+)%s*$")
-    end
-    if not level then
-        -- "28±" (plus-minus symbol, UTF-8 encoded as \194\177)
-        level = string.match(s, "(%d+)%s*\194\177")
-    end
-    if not level then
-        -- "28+" or "28-" at end
-        level = string.match(s, "(%d+)%s*[%+%-]$")
-    end
-    if not level then
-        -- "28+" or "28-" followed by non-digit/non-symbol
-        level = string.match(s, "(%d+)%s*[%+%-][^%+%-%d/]")
-    end
+
     if level then
-        level = tonumber(level)
-        return GetLevelRange(level)
+        local a, b = GetLevelRange(tonumber(level))
+        return a, b, parsedMsg
     end
 
     -- Explicit range "25-30"
     local a, b = string.match(s, "(%d+)%s*%-%s*(%d+)")
+    parsedMsg, _ = string.gsub(s, "(%d+)%s*%-%s*(%d+)", "")
     if a and b then
         a, b = tonumber(a), tonumber(b)
-        if a and b and a < b and b <= 60 then
-            return a, b
+        if a and b and b <= 60 and a <= 60 then
+            return a, b, parsedMsg
         end
-    end
-
-    -- "lvl 27", "lv 27"
-    level = string.match(s, "lv[le]*%.?%s*(%d+)")
-    if level then
-        level = tonumber(level)
-        return GetLevelRange(level)
     end
 
     -- "any level"
     if string.find(s, "any level") or string.find(s, "any lvl") then
-        return 1, 60
+        parsedMsg, _ = string.gsub(s, "any level", "")
+        parsedMsg, _ = string.gsub(parsedMsg, "any lvl", "")
+        return 1, 60, parsedMsg
     end
 
     -- Fallback: Use first valid number found (±5 range)
+    local lastNum = nil
     for num in string.gmatch(s, "%d+") do
-        local n = tonumber(num)
-        return GetLevelRange(n)
+        if tonumber(num) > 0 and tonumber(num) <= 60 then
+            lastNum = num
+        end
+    end
+    if lastNum then
+        parsedMsg, _ = string.gsub(s, lastNum, "")
+        a, b = GetLevelRange(tonumber(lastNum))
+        return a, b, parsedMsg
     end
 
-    return 0, 0  -- No valid level found
+    return 0, 0, msg  -- No valid level found
 end
 
 -- ================================================================
@@ -269,23 +274,26 @@ end
 
 local function ProcessHCMessage(sender, msg)
     -- Ignore non-trade messages
-    if not IsTradeMessage(msg) then return end
+    local isWTS, parsedMsg = ParseWTS(msg)
+    if not isWTS then return end
 
-    local rangeMin, rangeMax = ParseLevelRange(msg)
+    local levelMin = 0
+    local levelMax = 0
+    levelMin, levelMax, parsedMsg = ParseLevelRange(parsedMsg)
 
     -- Fallback: if no level range was found in the message, try to use
     -- the sender's cached level (gathered passively from friends/guild/
     -- party/raid/target/mouseover/who results)
     local usedCachedLevel = false
-    if not rangeMin then
+    if not levelMin then
         local cachedLevel = GetCachedLevel(sender)
         if cachedLevel then
-            rangeMin, rangeMax = GetLevelRange(cachedLevel)
+            levelMin, levelMin = GetLevelRange(cachedLevel)
             usedCachedLevel = true
         end
     end
 
-    StoreOffer(sender, msg or msg, rangeMin, rangeMax)
+    StoreOffer(sender, parsedMsg, levelMin, levelMax)
 end
 
 -- ================================================================
