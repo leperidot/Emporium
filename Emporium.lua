@@ -22,7 +22,6 @@ if not string.gmatch then
     string.gmatch = string.gfind
 end
 
-Emporium = Emporium or {}
 EmporiumDB = EmporiumDB or {}
 
 -- ================================================================
