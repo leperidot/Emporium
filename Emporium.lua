@@ -113,7 +113,7 @@ local function ParseLevelRange(msg)
     -- "lvl 27", "lv 27"
     level = string.match(s, "lv[le]*%.?%s*(%d+)")
     if level then
-        level = tonumber(lvl)
+        level = tonumber(level)
         return GetLevelRange(level)
     end
 
@@ -398,6 +398,11 @@ SlashCmdList["EMPORIUM"] = function(msg)
     elseif cmd == "cache clear" then
         EmporiumDB.levelCache = {}
         DEFAULT_CHAT_FRAME:AddMessage("|cffffd100Emporium:|r Level cache cleared.")
+
+    elseif cmd == "browse" then
+        for index, offer in Market do
+            DEFAULT_CHAT_FRAME:AddMessage("<" .. offer.username .. ">: " .. offer.message)
+        end
 
     elseif cmd == "help" or cmd == "" then
         DEFAULT_CHAT_FRAME:AddMessage("|cffffd100Emporium:|r To get help, type |cffffffff/emporium help |cff00ffff<command>|r for details.")
