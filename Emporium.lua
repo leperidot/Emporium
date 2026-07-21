@@ -22,6 +22,7 @@ if not string.gmatch then
     string.gmatch = string.gfind
 end
 
+Market = Market or {}
 EmporiumDB = EmporiumDB or {}
 
 -- ================================================================
@@ -246,8 +247,15 @@ end
 -- STORE OFFER
 -- ================================================================
 
-local function StoreOffer(sender, msg, rangeMin, rangeMax)
-    DEFAULT_CHAT_FRAME:AddMessage("Emporium: <" .. sender .. "> " .. msg .. " [" .. rangeMin .. "-" .. rangeMax .. "]")
+local function StoreOffer(sender, msg, levelMin, levelMax)
+    DEFAULT_CHAT_FRAME:AddMessage("Emporium: <" .. sender .. "> " .. msg .. " [" .. levelMin .. "-" .. levelMax .. "]")
+
+    table.insert(Market, {
+        username = sender,
+        message = msg,
+        levelMin = levelMin,
+        levelMax = levelMax
+    })
 end
 
 -- ================================================================
