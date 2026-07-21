@@ -120,9 +120,9 @@ local function ParseLevelRange(msg)
         return 1, 60, parsedMsg
     end
 
-    -- Fallback: Use first valid number found (±5 range)
+    -- Fallback: Use last valid number found (±5 range)
     local lastNum = nil
-    for num in string.gmatch(s, "%d+") do
+    for num in string.gmatch(s, " %d+") do
         if tonumber(num) > 0 and tonumber(num) <= 60 then
             lastNum = num
         end
@@ -252,12 +252,11 @@ end
 -- STORE OFFER
 -- ================================================================
 
-local function StoreOffer(sender, msg, levelMin, levelMax)
-    DEFAULT_CHAT_FRAME:AddMessage("Emporium: <" .. sender .. "> " .. msg .. " [" .. levelMin .. "-" .. levelMax .. "]")
-
+local function StoreOffer(sender, content, originalMessage, levelMin, levelMax)
     table.insert(Market, {
         username = sender,
-        message = msg,
+        content = content,
+        originalMessage = originalMessage,
         levelMin = levelMin,
         levelMax = levelMax
     })
@@ -293,7 +292,7 @@ local function ProcessHCMessage(sender, msg)
         end
     end
 
-    StoreOffer(sender, parsedMsg, levelMin, levelMax)
+    StoreOffer(sender, parsedMsg, msg, levelMin, levelMax)
 end
 
 -- ================================================================
@@ -409,7 +408,7 @@ SlashCmdList["EMPORIUM"] = function(msg)
 
     elseif cmd == "browse" then
         for index, offer in Market do
-            DEFAULT_CHAT_FRAME:AddMessage("<" .. offer.username .. ">: " .. offer.message)
+            DEFAULT_CHAT_FRAME:AddMessage("<" .. offer.username .. ">: " .. offer.content .. "[" .. offer.levelMin .. "-" .. offer.levelMax .. "]")
         end
 
     elseif cmd == "help" or cmd == "" then
