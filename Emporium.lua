@@ -55,7 +55,7 @@ local function GetLevelRange(level)
     if level and level >= 1 and level <= 60 then
         return math.max(1, level - TRADE_RANGE), math.min(60, level + TRADE_RANGE)
     end
-    return nil, nil
+    return 0, 0
 end
 
 -- ================================================================
@@ -127,7 +127,7 @@ local function ParseLevelRange(msg)
         return GetLevelRange(n)
     end
 
-    return nil, nil  -- No valid level found
+    return 0, 0  -- No valid level found
 end
 
 -- ================================================================
