@@ -88,20 +88,84 @@ CreateScrollChild = --[[pfUI.api.CreateScrollChild or]] function(name, parent)
     return f
 end
 
-local button_height = 30
-function OfferFrameCreate(i, parent)
+local button_height = 40
+local button_margin = 5
+local WTSFrameWitdh = 600 - 2 * button_margin
+
+local playerName = "Courgette"
+
+local WTSFrameLayout = {
+    level
+}
+function CreateWTSFrameCreate(i, parent)
     local f = CreateFrame("Frame", nil, parent)
-    f:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -i * button_height + 5)
-    f:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", 10, -i * button_height - 15)
+
+    f:SetPoint("TOPLEFT", parent, "TOPLEFT", button_margin, -i * (button_height + button_margin) - button_margin)
+    f:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", button_margin, -(i + 1) * (button_height + button_margin))
     f:SetBackdrop(backdrop)
     f:SetBackdropColor(0, 0, 0, 0.5)
     f:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
 
-    local name = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    name:SetPoint("LEFT", f, "LEFT", 10, 0)
-    name:SetText("OFFER " .. i)
-    name:SetTextColor(1, 1, 1)
+    local xLeft = 0
+    local xRight = WTSFrameWitdh * 0.1
+    local halfPadding = 2
 
+    f.levelRangeFrame = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    f.levelRangeFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
+    f.levelRangeFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", xRight - halfPadding, 0)
+    --f.levelRangeFrame:SetText("[8 - 18]")
+    f.levelRangeFrame:SetJustifyH("LEFT")
+    f.levelRangeFrame:SetJustifyV("CENTER")
+    f.levelRangeFrame:SetTextColor(1, 1, 1)
+
+    xLeft = xRight
+    xRight = xRight + WTSFrameWitdh * 0.6
+
+    f.itemNameFrame = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    f.itemNameFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
+    f.itemNameFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", xRight - halfPadding, 0)
+    --f.itemNameFrame:SetText("[VERY VERY VERY VERY VERY VERY LONG OFFER " .. i .. "]")
+    f.itemNameFrame:SetJustifyH("LEFT")
+    f.itemNameFrame:SetJustifyV("CENTER")
+    f.itemNameFrame:SetTextColor(1, 1, 1)
+
+    xLeft = xRight
+    xRight = xRight + WTSFrameWitdh * 0.2
+
+    f.sellerFrame = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    f.sellerFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
+    f.sellerFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", xRight - halfPadding, 0)
+    --f.sellerFrame:SetText(playerName)
+    f.sellerFrame:SetJustifyH("CENTER")
+    f.sellerFrame:SetJustifyV("CENTER")
+    f.sellerFrame:SetTextColor(1, 1, 1)
+
+    xLeft = xRight
+    xRight = xRight + WTSFrameWitdh * 0.1
+
+    f.whipserButton = CreateFrame("Button", nil, f)
+    f.whipserButton:SetHeight(20)
+    f.whipserButton:SetPoint("LEFT", f, "LEFT", xLeft + halfPadding, 0)
+    f.whipserButton:SetPoint("RIGHT", f, "LEFT", xRight - halfPadding, 0)
+    f.whipserButton:SetBackdrop(backdrop)
+    f.whipserButton:SetBackdropColor(0, 0, 0, 1)
+    f.whipserButton:SetBackdropBorderColor(0.2, 0.2, 0.2, 1)
+    local xStr = f.whipserButton:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    xStr:SetAllPoints(f.whipserButton)
+    xStr:SetJustifyH("CENTER")
+    xStr:SetJustifyV("MIDDLE")
+    xStr:SetText("Whisper")
+    xStr:SetTextColor(1, 0.2, 1)
+    f.whipserButton:SetScript("OnClick",
+        function() ChatFrame_OpenChat("/w " .. playerName .. " ", DEFAULT_CHAT_FRAME) end)
+    f.whipserButton:SetScript("OnEnter", function() this:SetBackdropBorderColor(1, 0.2, 1, 1) end)
+    f.whipserButton:SetScript("OnLeave", function() this:SetBackdropBorderColor(0.2, 0.2, 0.2, 1) end)
+
+    f.setData = function(data)
+        f.levelRangeFrame:SetText("[ " .. data.levelMin .. " - " .. data.levelMax .. " ]")
+        f.itemNameFrame:SetText(data.content)
+        f.sellerFrame:SetText(data.username)
+    end
     --f:Hide()
     --f:SetID(i)
 
@@ -251,14 +315,20 @@ Browser.tab.list:SetWidth(600)
 
 Browser.tab.buttons = {}
 local button_count = 20
-for i_item = 1, button_count do
-    Browser.tab.buttons[i_item] = OfferFrameCreate(i_item, Browser.tab.list)
+for i_item = 0, button_count - 1 do
+    Browser.tab.buttons[i_item] = CreateWTSFrameCreate(i_item, Browser.tab.list)
+    Browser.tab.buttons[i_item].setData({
+        username = "Courgette",
+        content = "[VERY VERY VERY VERY VERY VERY VERY LONG OFFER ".. i_item .." ]",
+        levelMin = 8,
+        levelMax = 18,
+    })
     --Browser.tab.buttons[i_item]:SetText("Button " .. i_item)
     --DEFAULT_CHAT_FRAME:AddMessage("Button " .. i_item)
 end
 
 Browser.tab.list:Hide()
-Browser.tab.list:SetHeight(button_count * button_height)
+Browser.tab.list:SetHeight(button_count * (button_height + button_margin))
 Browser.tab.list:Show()
 Browser.tab.list:GetParent():SetScrollChild(Browser.tab.list)
 Browser.tab.list:GetParent():SetVerticalScroll(0)
