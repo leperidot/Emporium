@@ -260,6 +260,8 @@ local function StoreOffer(sender, content, originalMessage, levelMin, levelMax)
         levelMin = levelMin,
         levelMax = levelMax
     })
+
+    RefreshBrowser()
 end
 
 -- ================================================================
@@ -315,6 +317,7 @@ eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 eventFrame:RegisterEvent("WHO_LIST_UPDATE")
 eventFrame:RegisterEvent("CHAT_MSG_SAY")
+eventFrame:RegisterEvent("CHAT_MSG_PARTY")
 eventFrame:RegisterEvent("CHAT_MSG_GUILD")
 eventFrame:RegisterEvent("CHAT_MSG_CHANNEL")
 eventFrame:SetScript("OnEvent", function()
@@ -360,7 +363,7 @@ eventFrame:SetScript("OnEvent", function()
     if event == "WHO_LIST_UPDATE" then
         ScanWhoLevels()
     end
-    if event == "CHAT_MSG_GUILD" or event == "CHAT_MSG_SAY" then
+    if event == "CHAT_MSG_GUILD" or event == "CHAT_MSG_SAY" or event == "CHAT_MSG_PARTY"then
         -- arg1 = message body, arg2 = sender name (no [G]/<lvl:name> prefix on raw event)
         if guildEnabled and arg1 and arg2 then
             ProcessHCMessage(arg2, arg1)
