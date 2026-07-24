@@ -83,7 +83,7 @@ local function ParseLevelRange(msg)
         "(%d+)%s*\194\177",             -- "28±" (plus-minus symbol, UTF-8 encoded as \194\177)
         "(%d+)%s*[%+%-]$",              -- "28+" or "28-" at end
         "(%d+)%s*[%+%-][^%+%-%d/]",     -- "28+" or "28-" followed by non-digit/non-symbol
-        "lv[le]*%.?%s*(%d+)[^%-%d/]"            -- "lvl 27", "lv 27", "lvl27"
+        "lv[le]*%.?%s*(%d+)[^%-%d/]"    -- "lvl 27", "lv 27", "lvl27"
     }
 
     local level = nil
@@ -120,9 +120,9 @@ local function ParseLevelRange(msg)
         return 1, 60, parsedMsg
     end
 
-    -- Fallback: Use last valid number found (±5 range)
+    -- Fallback: Use number at the end of the message
     local lastNum = nil
-    for num in string.gmatch(s, " %d+") do
+    for num in string.gmatch(s, " %d+$") do
         if tonumber(num) > 0 and tonumber(num) <= 60 then
             lastNum = num
         end
