@@ -98,7 +98,7 @@ local OFFER_FRAME_WIDTH = BROWSER_OFFER_LIST_WIDTH - 2 * button_margin
 function CreateWTSFrame(i, parent)
     local f = CreateFrame("Frame", nil, parent)
 
-    f.id = i + 1  -- Tabe indices start at 1 (facepalm)
+    f.id = i + 1 -- Tabe indices start at 1 (facepalm)
     f:SetPoint("TOPLEFT", parent, "TOPLEFT", button_margin, -i * (button_height + button_margin) - button_margin)
     f:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", button_margin, -(i + 1) * (button_height + button_margin))
     f:SetBackdrop(backdrop)
@@ -370,4 +370,9 @@ end
 Browser:SetScript("OnShow", function()
     RefreshBrowser()
     Browser.tab:SetVerticalScroll(0)
+    PlaySound("igSpellBookOpen")
+end)
+
+Browser:SetScript("OnHide", function()
+    PlaySound("igSpellBookClose")
 end)
