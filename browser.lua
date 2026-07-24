@@ -95,12 +95,11 @@ local button_margin = 5
 local BROWSER_OFFER_LIST_WIDTH = BROWSER_WIDTH - 40
 local OFFER_FRAME_WIDTH = BROWSER_OFFER_LIST_WIDTH - 2 * button_margin
 
-function CreateWTSFrame(i, parent)
+function CreateWTSFrame(index, parent)
     local f = CreateFrame("Frame", nil, parent)
 
-    f:SetID(i + 1) -- Tabe indices start at 1 (facepalm)
-    f:SetPoint("TOPLEFT", parent, "TOPLEFT", button_margin, -i * (button_height + button_margin) - button_margin)
-    f:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", button_margin, -(i + 1) * (button_height + button_margin))
+    f:SetPoint("TOPLEFT", parent, "TOPLEFT", button_margin, -index * (button_height + button_margin) - button_margin)
+    f:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", button_margin, -(index + 1) * (button_height + button_margin))
     f:SetBackdrop(backdrop)
     f:SetBackdropColor(0, 0, 0, 0.5)
     f:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
@@ -174,7 +173,7 @@ function CreateWTSFrame(i, parent)
     xStr:SetJustifyV("MIDDLE")
     xStr:SetText("X")
     xStr:SetTextColor(0.7, 0.2, 0.2)
-    f.clearOffer:SetScript("OnClick", function() 
+    f.clearOffer:SetScript("OnClick", function()
         table.remove(EmporiumDB.Market.wts, f:GetID())
         RefreshBrowser()
     end)
@@ -182,8 +181,9 @@ function CreateWTSFrame(i, parent)
     f.clearOffer:SetScript("OnLeave", function() this:SetBackdropBorderColor(0.2, 0.2, 0.2, 1) end)
 
 
-    f.SetOffer = function(offer)
+    f.SetOffer = function(offerID, offer)
         f.offer = offer
+        f:SetID(offerID)
         f.RefreshFrame()
     end
     f.RefreshFrame = function()
@@ -295,6 +295,8 @@ Browser:SetBackdropColor(0, 0, 0, 0.5)
 Browser:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
 table.insert(UISpecialFrames, "EmporiumBrowser")
 
+Browser.searchText = ""
+
 -- Title
 local title = Browser:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 title:SetPoint("TOP", Browser, "TOP", 0, -10)
@@ -319,9 +321,11 @@ closeBtn:SetScript("OnClick", function() Browser:Hide() end)
 closeBtn:SetScript("OnEnter", function() this:SetBackdropBorderColor(1, 0.2, 0.2, 1) end)
 closeBtn:SetScript("OnLeave", function() this:SetBackdropBorderColor(0.2, 0.2, 0.2, 1) end)
 
+BROWSER_TAB_MARGIN = 10
+
 Browser.tab = CreateScrollFrame("EmporiumBrowserTab", Browser)
-Browser.tab:SetPoint("TOPLEFT", Browser, "TOPLEFT", 10, -65)
-Browser.tab:SetPoint("BOTTOMRIGHT", Browser, "BOTTOMRIGHT", -10, 45)
+Browser.tab:SetPoint("TOPLEFT", Browser, "TOPLEFT", BROWSER_TAB_MARGIN, -65)
+Browser.tab:SetPoint("BOTTOMRIGHT", Browser, "BOTTOMRIGHT", -BROWSER_TAB_MARGIN, 45)
 Browser.tab:SetBackdrop(backdrop)
 Browser.tab:SetBackdropColor(0, 0, 0, 0.5)
 Browser.tab:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
@@ -345,23 +349,28 @@ Browser.tab.buttons = {}
 local MAX_OFFER_COUNT = 256
 function RefreshBrowser()
     Browser.tab.list:Hide()
-    local iOffer = 0
-    for _, offer in EmporiumDB.Market.wts do
-        if iOffer >= MAX_OFFER_COUNT then
+    local iFrame = 0
+    for iOffer, offer in EmporiumDB.Market.wts do
+        if iFrame >= MAX_OFFER_COUNT then
             DEFAULT_CHAT_FRAME:AddMessage("|c00ff0000[Emporium]: Browser full")
             break
         end
-        Browser.tab.buttons[iOffer] = Browser.tab.buttons[iOffer] or CreateWTSFrame(iOffer, Browser.tab.list)
-        Browser.tab.buttons[iOffer].SetOffer(offer)
-        Browser.tab.buttons[iOffer]:Show()
-        iOffer = iOffer + 1
+
+        if (not Browser.searchText or string.len(Browser.searchText) == 0)                          -- No search text
+            or (string.find(string.lower(offer.originalMessage), string.lower(Browser.searchText))) -- Search text match the offer
+        then
+            Browser.tab.buttons[iFrame] = Browser.tab.buttons[iFrame] or CreateWTSFrame(iFrame, Browser.tab.list)
+            Browser.tab.buttons[iFrame].SetOffer(iOffer, offer)
+            Browser.tab.buttons[iFrame]:Show()
+            iFrame = iFrame + 1
+        end
     end
 
-    Browser.tab.list:SetHeight(iOffer * (button_height + button_margin))
+    Browser.tab.list:SetHeight(iFrame * (button_height + button_margin))
 
-    while Browser.tab.buttons[iOffer] do
-        Browser.tab.buttons[iOffer]:Hide()
-        iOffer = iOffer + 1
+    while Browser.tab.buttons[iFrame] do
+        Browser.tab.buttons[iFrame]:Hide()
+        iFrame = iFrame + 1
     end
 
     Browser.tab:SetScrollChild(Browser.tab.list)
@@ -376,4 +385,96 @@ end)
 
 Browser:SetScript("OnHide", function()
     PlaySound("igSpellBookClose")
+end)
+
+Browser.input = CreateFrame("EditBox", "EmporiumBrowserSearch", Browser)
+--Browser.input:SetFont(pfUI.font_default, pfUI_config.global.font_size, "OUTLINE")
+Browser.input:SetFontObject("GameFontDisable")
+Browser.input:SetAutoFocus(false)
+Browser.input:SetText("Search")
+Browser.input:SetJustifyH("LEFT")
+Browser.input:SetPoint("TOPLEFT", Browser, "TOPLEFT", BROWSER_TAB_MARGIN, -30)
+Browser.input:SetWidth(BROWSER_OFFER_LIST_WIDTH * 0.3)
+Browser.input:SetHeight(20)
+Browser.input:SetTextInsets(4, 4, 4, 4)
+Browser.input:SetBackdrop(backdrop)
+Browser.input:SetBackdropColor(0, 0, 0, 0.5)
+Browser.input:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+
+-- Search icon
+Browser.input.searchIcon = Browser.input:CreateTexture("$parentSearchIcon", "OVERLAY")
+--Browser.input.searchIcon:SetTexture(pfQuestConfig.path .. "\\img\\tracker_search")
+Browser.input.searchIcon:SetHeight(14)
+Browser.input.searchIcon:SetWidth(14)
+Browser.input.searchIcon:SetVertexColor(0.6, 0.6, 0.6)
+Browser.input.searchIcon:SetPoint("LEFT", Browser.input, "LEFT", 6, 0)
+
+-- Clear search input
+Browser.input.clearButton = CreateFrame("Button", "$parentClearButton", Browser.input)
+Browser.input.clearButton:Hide()
+Browser.input.clearButton:SetHeight(17)
+Browser.input.clearButton:SetWidth(17)
+Browser.input.clearButton:SetPoint("RIGHT", Browser.input, "RIGHT", -3, 0)
+Browser.input.clearButton.texture = Browser.input.clearButton:CreateTexture(nil, "ARTWORK")
+--Browser.input.clearButton.texture:SetTexture(pfQuestConfig.path .. "\\img\\tracker_close")
+Browser.input.clearButton.texture:SetHeight(17)
+Browser.input.clearButton.texture:SetWidth(17)
+Browser.input.clearButton.texture:SetAlpha(0.5)
+Browser.input.clearButton.texture:SetPoint("TOPLEFT", Browser.input.clearButton, "TOPLEFT", 0, 0)
+Browser.input.clearButton:SetScript("OnEnter", function()
+    this.texture:SetAlpha(1.0)
+end)
+Browser.input.clearButton:SetScript("OnLeave", function()
+    this.texture:SetAlpha(0.5)
+end)
+Browser.input.clearButton:SetScript("OnMouseDown", function()
+    if this:IsEnabled() then
+        this.texture:SetPoint("TOPLEFT", this, "TOPLEFT", 1, -1)
+    end
+end)
+Browser.input.clearButton:SetScript("OnMouseUp", function()
+    this.texture:SetPoint("TOPLEFT", this, "TOPLEFT", 0, 0)
+end)
+Browser.input.clearButton:SetScript("OnClick", function()
+    PlaySound("igMainMenuOptionCheckBoxOn")
+    Browser.input:SetText("")
+    --[[ If there is no focus, then the ClearFocus() method does not call the OnEditFocusLost script.
+    In 1.12, there is no HasFocus() method, so there is no way to check for focus. therefore,
+    for ease of implementation and to avoid double calling the OnEditFocusLost script, I use the
+    SetFocus() method to accurately ensure that the OnEditFocusLost script is called.]]
+    Browser.input:SetFocus()
+    Browser.input:ClearFocus()
+end)
+
+
+Browser.input:SetScript("OnEscapePressed", function() this:ClearFocus() end)
+Browser.input:SetScript("OnEnterPressed", function() this:ClearFocus() end)
+Browser.input:SetScript("OnEditFocusGained", function()
+    this:HighlightText()
+    this:SetFontObject("GameFontWhite")
+    this.searchIcon:SetVertexColor(1.0, 1.0, 1.0)
+    if this:GetText() == "Search" then this:SetText("") end
+    this.clearButton:Show()
+end)
+
+Browser.input:SetScript("OnEditFocusLost", function()
+    this:HighlightText(0, 0)
+    this:SetFontObject("GameFontDisable")
+    this.searchIcon:SetVertexColor(0.6, 0.6, 0.6)
+    if this:GetText() == "" then
+        this:SetText("Search")
+        this.clearButton:Hide()
+    end
+end)
+
+-- This script updates all the search tabs when the search text changes
+Browser.input:SetScript("OnTextChanged", function()
+    local text = this:GetText()
+    if (text == "Search") then text = "" end
+
+    local newSearch = string.len(text) >= 3 and text or ""
+    if newSearch ~= Browser.searchText then
+        Browser.searchText = newSearch
+        RefreshBrowser()
+    end
 end)
