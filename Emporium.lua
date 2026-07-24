@@ -83,7 +83,7 @@ local function ParseLevelRange(msg)
         "(%d+)%s*\194\177",             -- "28±" (plus-minus symbol, UTF-8 encoded as \194\177)
         "(%d+)%s*[%+%-]$",              -- "28+" or "28-" at end
         "(%d+)%s*[%+%-][^%+%-%d/]",     -- "28+" or "28-" followed by non-digit/non-symbol
-        "lv[le]*%.?%s*(%d+)"            -- "lvl 27", "lv 27"
+        "lv[le]*%.?%s*(%d+)[^%-%d/]"            -- "lvl 27", "lv 27", "lvl27"
     }
 
     local level = nil
