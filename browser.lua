@@ -293,6 +293,7 @@ Browser:SetScript("OnDragStop", function() this:StopMovingOrSizing() end)
 Browser:SetBackdrop(backdrop)
 Browser:SetBackdropColor(0, 0, 0, 0.5)
 Browser:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+table.insert(UISpecialFrames, "EmporiumBrowser")
 
 -- Title
 local title = Browser:CreateFontString(nil, "OVERLAY", "GameFontNormal")
