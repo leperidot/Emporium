@@ -296,6 +296,7 @@ Browser:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
 table.insert(UISpecialFrames, "EmporiumBrowser")
 
 Browser.searchText = ""
+Browser.levelCheck = false
 
 -- Title
 local title = Browser:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -356,9 +357,12 @@ function RefreshBrowser()
             break
         end
 
-        if (not Browser.searchText or string.len(Browser.searchText) == 0)                          -- No search text
+        local searchTextFilter = (not Browser.searchText or string.len(Browser.searchText) == 0)    -- No search text
             or (string.find(string.lower(offer.originalMessage), string.lower(Browser.searchText))) -- Search text match the offer
-        then
+        local levelCheckFilter = (not Browser.levelCheck)
+            or (UnitLevel("player") >= offer.levelMin and UnitLevel("player") <= offer.levelMax)
+
+        if searchTextFilter and levelCheckFilter then
             Browser.tab.buttons[iFrame] = Browser.tab.buttons[iFrame] or CreateWTSFrame(iFrame, Browser.tab.list)
             Browser.tab.buttons[iFrame].SetOffer(iOffer, offer)
             Browser.tab.buttons[iFrame]:Show()
@@ -478,3 +482,20 @@ Browser.input:SetScript("OnTextChanged", function()
         RefreshBrowser()
     end
 end)
+
+Browser.levelCheckButton = CreateFrame("CheckButton", "EmporiumBrowserLevelCheck", Browser, "UICheckButtonTemplate")
+Browser.levelCheckButton:SetPoint("LEFT", Browser.input, "RIGHT", 145, -2)
+Browser.levelCheckButton:SetWidth(24)
+Browser.levelCheckButton:SetHeight(24)
+-- Browser.levelCheckButton_GlobalNameText:SetText("CheckBox Name")
+Browser.levelCheckButton.tooltip = "This is where you place MouseOver Text."
+Browser.levelCheckButton:SetScript("OnClick", function()
+    Browser.levelCheck = this:GetChecked()
+    RefreshBrowser()
+end
+);
+
+Browser.levelCheckButton.label = Browser.levelCheckButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+Browser.levelCheckButton.label:SetPoint("RIGHT", Browser.levelCheckButton, "LEFT", -2, 2)
+Browser.levelCheckButton.label:SetJustifyV("MIDDLE")
+Browser.levelCheckButton.label:SetText("Level range")
