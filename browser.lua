@@ -280,7 +280,7 @@ local function ResultButtonClick()
 end
 
 Browser = CreateFrame("Frame", "EmporiumBrowser", UIParent)
--- Browser:Hide()
+Browser:Hide()
 Browser:SetWidth(BROWSER_WIDTH)
 Browser:SetHeight(480)
 Browser:SetPoint("CENTER", 0, 0)

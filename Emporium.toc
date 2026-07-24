@@ -6,4 +6,5 @@
 ## SavedVariables: EmporiumDB
 
 Emporium.lua
+menu.lua
 browser.lua
