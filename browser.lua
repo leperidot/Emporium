@@ -345,7 +345,7 @@ local MAX_OFFER_COUNT = 256
 function RefreshBrowser()
     Browser.tab.list:Hide()
     local iOffer = 0
-    for _, offer in Market do
+    for _, offer in EmporiumDB.Market.wts do
         if iOffer >= MAX_OFFER_COUNT then
             DEFAULT_CHAT_FRAME:AddMessage("|c00ff0000[Emporium]: Browser full")
             break

@@ -22,7 +22,6 @@ if not string.gmatch then
     string.gmatch = string.gfind
 end
 
-Market = Market or {}
 EmporiumDB = EmporiumDB or {}
 
 -- ================================================================
@@ -253,7 +252,7 @@ end
 -- ================================================================
 
 local function StoreOffer(sender, content, originalMessage, levelMin, levelMax)
-    table.insert(Market, {
+    table.insert(EmporiumDB.Market.wts, {
         username = sender,
         content = content,
         originalMessage = originalMessage,
@@ -328,6 +327,8 @@ eventFrame:SetScript("OnEvent", function()
         -- Initialize level cache (passive sender level tracking)
         EmporiumDB.levelCache = EmporiumDB.levelCache or {}
         EmporiumDB.classCache = EmporiumDB.classCache or {}
+        EmporiumDB.Market = EmporiumDB.Market or {}
+        EmporiumDB.Market.wts = EmporiumDB.Market.wts or {}
     end
     
     if event == "PLAYER_ENTERING_WORLD" then
@@ -413,7 +414,7 @@ SlashCmdList["EMPORIUM"] = function(msg)
         DEFAULT_CHAT_FRAME:AddMessage("|cffffd100Emporium:|r Level cache cleared.")
 
     elseif cmd == "browse" then
-        for index, offer in Market do
+        for index, offer in EmporiumDB.Market.wts do
             DEFAULT_CHAT_FRAME:AddMessage("<" .. offer.username .. ">: " .. offer.content .. "[" .. offer.levelMin .. "-" .. offer.levelMax .. "]")
         end
 
