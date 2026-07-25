@@ -329,6 +329,7 @@ eventFrame:SetScript("OnEvent", function()
         EmporiumDB.classCache = EmporiumDB.classCache or {}
         EmporiumDB.Market = EmporiumDB.Market or {}
         EmporiumDB.Market.wts = EmporiumDB.Market.wts or {}
+        EmporiumDB.Market.wtb = EmporiumDB.Market.wtb or {}
     end
     
     if event == "PLAYER_ENTERING_WORLD" then
@@ -394,6 +395,11 @@ SlashCmdList["EMPORIUM"] = function(msg)
 
     if cmd == "browser" then
         Browser:Show()
+
+    elseif cmd == "clear" then
+        EmporiumDB.Market.wts = {}
+        EmporiumDB.Market.wtb = {}
+        DEFAULT_CHAT_FRAME:AddMessage("|cffffd100Emporium:|r Cleared trader offers.")
  
     elseif cmd == "debug" then
         -- Toggle debug mode: prints detailed message processing info
@@ -412,11 +418,6 @@ SlashCmdList["EMPORIUM"] = function(msg)
     elseif cmd == "cache clear" then
         EmporiumDB.levelCache = {}
         DEFAULT_CHAT_FRAME:AddMessage("|cffffd100Emporium:|r Level cache cleared.")
-
-    elseif cmd == "browse" then
-        for index, offer in EmporiumDB.Market.wts do
-            DEFAULT_CHAT_FRAME:AddMessage("<" .. offer.username .. ">: " .. offer.content .. "[" .. offer.levelMin .. "-" .. offer.levelMax .. "]")
-        end
 
     elseif cmd == "help" or cmd == "" then
         DEFAULT_CHAT_FRAME:AddMessage("|cffffd100Emporium:|r To get help, type |cffffffff/emporium help |cff00ffff<command>|r for details.")
