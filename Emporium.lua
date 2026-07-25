@@ -154,7 +154,12 @@ local function CacheLevel(name, level)
 end
 
 local function GetCachedLevel(name)
-    if not EmporiumDB.levelCache then return nil end
+    if not EmporiumDB.levelCache then
+        return 0
+    end
+    if EmporiumDB.levelCache[name] == nil then
+        return 0
+    end
     return EmporiumDB.levelCache[name]
 end
 
@@ -206,6 +211,12 @@ local function ScanWhoLevels()
     end
 end
 
+local function GetNewPlayerLevel(username)
+    SendWho("n-"..username)
+    ScanWhoLevels()
+    return GetCachedLevel(username)
+end
+
 -- ================================================================
 -- STORE OFFER
 -- ================================================================
@@ -252,12 +263,13 @@ local function ProcessHCMessage(sender, msg)
     -- Fallback: if no level range was found in the message, try to use
     -- the sender's cached level (gathered passively from friends/guild/
     -- party/raid/target/mouseover/who results)
-    local usedCachedLevel = false
-    if not levelMin then
+    if levelMin == 0 or levelMax == 0 then
         local cachedLevel = GetCachedLevel(sender)
+        if not cachedLevel or cachedLevel == 0 then
+            cachedLevel = GetNewPlayerLevel(sender)
+        end
         if cachedLevel then
-            levelMin, levelMin = GetLevelRange(cachedLevel)
-            usedCachedLevel = true
+            levelMin, levelMax = GetLevelRange(cachedLevel)
         end
     end
 

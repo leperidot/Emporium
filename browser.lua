@@ -187,6 +187,8 @@ function CreateWTSFrame(index, parent)
         f.RefreshFrame()
     end
     f.RefreshFrame = function()
+        local lvlMin = f.offer.levelMin or 0
+        local lvlMax = f.offer.levelMax or 0
         f.levelRangeFrame:SetText("[" .. f.offer.levelMin .. " - " .. f.offer.levelMax .. "]")
         f.itemNameFrame:SetText(f.offer.content)
         f.sellerFrame:SetText(f.offer.username)
