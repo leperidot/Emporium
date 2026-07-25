@@ -76,13 +76,14 @@ local function ParseLevelRange(msg)
     local s = msg
 
     local patterns = {
-        "(%d+)%s*[%+%-][%+%-%/]+$",     -- "28+-", "28+--", etc. (at end of message)
-        "(%d+)%s*[%+%-][%+%-%/]+[^%d]", -- "28+-" followed by non-digit
-        "[%+%-][%+%-%/]+(%d+)%s*$",     -- "+-28" at end
-        "(%d+)%s*\194\177",             -- "28±" (plus-minus symbol, UTF-8 encoded as \194\177)
-        "(%d+)%s*[%+%-]$",              -- "28+" or "28-" at end
-        "(%d+)%s*[%+%-][^%+%-%d/]",     -- "28+" or "28-" followed by non-digit/non-symbol
-        "lv[le]*%.?%s*(%d+)[^%-%d/]"    -- "lvl 27", "lv 27", "lvl27"
+        "(%d+)%s*[%+%-][%+%-%/]+$",             -- "28+-", "28+--", etc. (at end of message)
+        "(%d+)%s*[%+%-][%+%-%/]+[^%d]",         -- "28+-" followed by non-digit
+        "lv[l]*(%d+)%s*[%+%-][%+%-%/]+[^%d]",   -- "lvl28+-" followed by non-digit
+        "[%+%-][%+%-%/]+(%d+)%s*$",             -- "+-28" at end
+        "(%d+)%s*\194\177",                     -- "28±" (plus-minus symbol, UTF-8 encoded as \194\177)
+        "(%d+)%s*[%+%-]$",                      -- "28+" or "28-" at end
+        "(%d+)%s*[%+%-][^%+%-%d/]",             -- "28+" or "28-" followed by non-digit/non-symbol
+        "lv[le]*%.?%s*(%d+)[^%-%d/]"            -- "lvl 27", "lv 27", "lvl27"
     }
 
     local level = nil
