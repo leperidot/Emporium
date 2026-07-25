@@ -251,9 +251,18 @@ end
 -- STORE OFFER
 -- ================================================================
 
-local function StoreOffer(sender, content, originalMessage, levelMin, levelMax)
+local function StoreOffer(username, content, originalMessage, levelMin, levelMax)
+    for idx, offer in EmporiumDB.Market.wts do
+        if offer.username == username and offer.content == content then
+            EmporiumDB.Market.wts[idx].levelMin = levelMin
+            EmporiumDB.Market.wts[idx].levelMax = levelMax
+            RefreshBrowser()
+            return
+        end
+    end
+
     table.insert(EmporiumDB.Market.wts, {
-        username = sender,
+        username = username,
         content = content,
         originalMessage = originalMessage,
         levelMin = levelMin,
@@ -399,6 +408,7 @@ SlashCmdList["EMPORIUM"] = function(msg)
     elseif cmd == "clear" then
         EmporiumDB.Market.wts = {}
         EmporiumDB.Market.wtb = {}
+        RefreshBrowser()
         DEFAULT_CHAT_FRAME:AddMessage("|cffffd100Emporium:|r Cleared trader offers.")
  
     elseif cmd == "debug" then

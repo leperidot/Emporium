@@ -188,7 +188,7 @@ function CreateWTSFrame(index, parent)
     end
     f.RefreshFrame = function()
         f.levelRangeFrame:SetText("[" .. f.offer.levelMin .. " - " .. f.offer.levelMax .. "]")
-        f.itemNameFrame:SetText(f.offer.originalMessage)
+        f.itemNameFrame:SetText(f.offer.content)
         f.sellerFrame:SetText(f.offer.username)
     end
     --f:Hide()
@@ -358,7 +358,7 @@ function RefreshBrowser()
         end
 
         local searchTextFilter = (not Browser.searchText or string.len(Browser.searchText) == 0)    -- No search text
-            or (string.find(string.lower(offer.originalMessage), string.lower(Browser.searchText))) -- Search text match the offer
+            or (string.find(string.lower(offer.content), string.lower(Browser.searchText))) -- Search text match the offer
         local levelCheckFilter = (not Browser.levelCheck)
             or (UnitLevel("player") >= offer.levelMin and UnitLevel("player") <= offer.levelMax)
 
