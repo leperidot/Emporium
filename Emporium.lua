@@ -158,59 +158,25 @@ local function GetCachedLevel(name)
     return EmporiumDB.levelCache[name]
 end
 
--- Class cache (parallel to level cache)
--- Stores raw English class token, e.g. "WARRIOR", "PALADIN"
--- EmporiumDB.classCache = { ["PlayerName"] = "CLASSNAME", ... }
-local CLASS_COLORS = {
-    WARRIOR = "|cffc79c6e",
-    PALADIN = "|cfff58cba",
-    HUNTER  = "|cffabd473",
-    ROGUE   = "|cfffff569",
-    PRIEST  = "|cffffffff",
-    SHAMAN  = "|cff0070de",
-    MAGE    = "|cff69ccf0",
-    WARLOCK = "|cff9482c9",
-    DRUID   = "|cffff7d0a",
-}
-
-local function CacheClass(name, class)
-    if not name or not class or class == "" then return end
-    EmporiumDB.classCache = EmporiumDB.classCache or {}
-    EmporiumDB.classCache[name] = string.upper(class)
-end
-
-local function GetCachedClass(name)
-    if not EmporiumDB.classCache then return nil end
-    return EmporiumDB.classCache[name]
-end
-
-local function GetClassColor(class)
-    if not class then return nil end
-    return CLASS_COLORS[string.upper(class)]
-end
-
 local function ScanFriendsLevels()
     for i = 1, GetNumFriends() do
-        local name, level, class = GetFriendInfo(i)
+        local name, level, _ = GetFriendInfo(i)
         CacheLevel(name, level)
-        CacheClass(name, class)
     end
 end
 
 local function ScanGuildLevels()
     if not IsInGuild() then return end
     for i = 1, GetNumGuildMembers() do
-        local name, _, _, level, class = GetGuildRosterInfo(i)
+        local name, _, _, level, _ = GetGuildRosterInfo(i)
         CacheLevel(name, level)
-        CacheClass(name, class)
     end
 end
 
 local function ScanRaidLevels()
     for i = 1, GetNumRaidMembers() do
-        local name, _, _, level, class = GetRaidRosterInfo(i)
+        local name, _, _, level, _ = GetRaidRosterInfo(i)
         CacheLevel(name, level)
-        CacheClass(name, class)
     end
 end
 
@@ -218,32 +184,25 @@ local function ScanPartyLevels()
     for i = 1, GetNumPartyMembers() do
         local unit = "party"..i
         CacheLevel(UnitName(unit), UnitLevel(unit))
-        local _, class = UnitClass(unit)
-        CacheClass(UnitName(unit), class)
     end
 end
 
 local function ScanTargetLevel()
     if UnitIsPlayer("target") then
         CacheLevel(UnitName("target"), UnitLevel("target"))
-        local _, class = UnitClass("target")
-        CacheClass(UnitName("target"), class)
     end
 end
 
 local function ScanMouseoverLevel()
     if UnitIsPlayer("mouseover") then
         CacheLevel(UnitName("mouseover"), UnitLevel("mouseover"))
-        local _, class = UnitClass("mouseover")
-        CacheClass(UnitName("mouseover"), class)
     end
 end
 
 local function ScanWhoLevels()
     for i = 1, GetNumWhoResults() do
-        local name, _, level, _, class = GetWhoInfo(i)
+        local name, _, level, _, _ = GetWhoInfo(i)
         CacheLevel(name, level)
-        CacheClass(name, class)
     end
 end
 
@@ -335,7 +294,6 @@ eventFrame:SetScript("OnEvent", function()
                     
         -- Initialize level cache (passive sender level tracking)
         EmporiumDB.levelCache = EmporiumDB.levelCache or {}
-        EmporiumDB.classCache = EmporiumDB.classCache or {}
         EmporiumDB.Market = EmporiumDB.Market or {}
         EmporiumDB.Market.wts = EmporiumDB.Market.wts or {}
         EmporiumDB.Market.wtb = EmporiumDB.Market.wtb or {}
@@ -344,8 +302,6 @@ eventFrame:SetScript("OnEvent", function()
     if event == "PLAYER_ENTERING_WORLD" then
         -- Seed level cache with what we already know
         CacheLevel(UnitName("player"), UnitLevel("player"))
-        local _, playerClass = UnitClass("player")
-        CacheClass(UnitName("player"), playerClass)
         ScanFriendsLevels()
         ScanGuildLevels()
         ScanPartyLevels()
@@ -466,4 +422,3 @@ DEFAULT_CHAT_FRAME:AddMessage("|cffffd100Emporium:|r Loaded. Type |cffffffff/emp
 
 -- SAVED VARIABLES (stored in WTF/Account/ACCOUNT/SavedVariables/Emporium.lua):
 -- EmporiumDB.levelCache
--- EmporiumDB.classCache
