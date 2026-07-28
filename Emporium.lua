@@ -36,6 +36,8 @@ local debugMode    = false   -- Print debug messages
 -- EmporiumDB.levelCache = { ["PlayerName"] = level, ... }
 local LEVEL_CACHE_RANGE = 5  -- +/- range applied when using cached level
 
+local OFFER_MAX_LIFE = 3600 * 8 -- 8 hours
+
 -- ================================================================
 -- HELPER FUNCTIONS
 -- ================================================================
@@ -222,11 +224,12 @@ end
 -- STORE OFFER
 -- ================================================================
 
-local function StoreOffer(username, content, originalMessage, levelMin, levelMax)
+local function StoreOffer(username, content, originalMessage, levelMin, levelMax, epoch)
     for idx, offer in EmporiumDB.Market.wts do
         if offer.username == username and offer.content == content then
             EmporiumDB.Market.wts[idx].levelMin = levelMin
             EmporiumDB.Market.wts[idx].levelMax = levelMax
+            EmporiumDB.Market.wts[idx].epoch = epoch
             RefreshBrowser()
             return
         end
@@ -237,10 +240,22 @@ local function StoreOffer(username, content, originalMessage, levelMin, levelMax
         content = content,
         originalMessage = originalMessage,
         levelMin = levelMin,
-        levelMax = levelMax
+        levelMax = levelMax,
+        epoch = epoch,
     })
 
     RefreshBrowser()
+end
+
+
+local function RemoveOldOffers(list)
+    local current_epoch = time()
+    for idx = table.getn(list), 1, -1 do
+        local offer = list[idx]
+        if offer.epoch + OFFER_MAX_LIFE < current_epoch then
+           table.remove(list, idx)
+        end
+    end
 end
 
 -- ================================================================
@@ -259,6 +274,7 @@ local function ProcessHCMessage(sender, msg)
 
     local levelMin = 0
     local levelMax = 0
+    local currentEpoch = time()
     levelMin, levelMax, parsedMsg = ParseLevelRange(parsedMsg)
 
     -- Fallback: if no level range was found in the message, try to use
@@ -274,7 +290,7 @@ local function ProcessHCMessage(sender, msg)
         end
     end
 
-    StoreOffer(sender, parsedMsg, msg, levelMin, levelMax)
+    StoreOffer(sender, parsedMsg, msg, levelMin, levelMax, currentEpoch)
 end
 
 -- ================================================================
@@ -319,6 +335,8 @@ eventFrame:SetScript("OnEvent", function()
         ScanGuildLevels()
         ScanPartyLevels()
         ScanRaidLevels()
+        RemoveOldOffers(EmporiumDB.Market.wts)
+        RemoveOldOffers(EmporiumDB.Market.wtb)
     end
 
     -- Level cache events (passive, no network traffic)
@@ -368,11 +386,17 @@ end)
 
 
 SLASH_EMPORIUM1 = "/emporium"
+SLASH_EMPORIUM2 = "/emp"
 SlashCmdList["EMPORIUM"] = function(msg)
     local cmd = string.lower(string.gsub(msg or "", "^%s*(.-)%s*$", "%1"))
 
     if cmd == "browser" then
         Browser:Show()
+
+    elseif cmd == "clean" then
+        RemoveOldOffers(EmporiumDB.Market.wts)
+        RemoveOldOffers(EmporiumDB.Market.wtb)
+        RefreshBrowser()
 
     elseif cmd == "clear" then
         EmporiumDB.Market.wts = {}
