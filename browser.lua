@@ -95,8 +95,22 @@ local button_margin = 5
 local BROWSER_OFFER_LIST_WIDTH = BROWSER_WIDTH - 40
 local OFFER_FRAME_WIDTH = BROWSER_OFFER_LIST_WIDTH - 2 * button_margin
 
+
+local function WTSFrameEnter()
+    local itemLink = this.items[table.getn(this.items)]
+    if itemLink then
+        GameTooltip:SetOwner(this, ANCHOR_BOTTOMLEFT)
+        GameTooltip:SetHyperlink(itemLink)
+        GameTooltip:Show()
+    end
+end
+
+local function WTSFrameLeave()
+    GameTooltip:Hide()
+end
+
 function CreateWTSFrame(index, parent)
-    local f = CreateFrame("Frame", nil, parent)
+    local f = CreateFrame("Button", nil, parent)
 
     f:SetPoint("TOPLEFT", parent, "TOPLEFT", button_margin, -index * (button_height + button_margin) - button_margin)
     f:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", button_margin, -(index + 1) * (button_height + button_margin))
@@ -118,12 +132,14 @@ function CreateWTSFrame(index, parent)
     xLeft = xRight
     xRight = xRight + OFFER_FRAME_WIDTH * 0.66
 
-    f.itemNameFrame = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    f.itemNameFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
-    f.itemNameFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", xRight - halfPadding, 0)
-    f.itemNameFrame:SetJustifyH("LEFT")
-    f.itemNameFrame:SetJustifyV("MIDDLE")
-    f.itemNameFrame:SetTextColor(1, 1, 1)
+    f.contentFrame = CreateFrame("Frame", nil, f)
+    f.contentFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
+    f.contentFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", xRight - halfPadding, 0)
+    --f.contentFrame:SetJustifyH("LEFT")
+    --f.contentFrame:SetJustifyV("MIDDLE")
+    f.contentFrame:SetBackdrop(backdrop)
+    f.contentFrame:SetBackdropColor(1, 0, 0, 0.5)
+    f.contentFrame:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
 
     xLeft = xRight
     xRight = xRight + OFFER_FRAME_WIDTH * 0.08
@@ -180,8 +196,16 @@ function CreateWTSFrame(index, parent)
     f.clearOffer:SetScript("OnEnter", function() this:SetBackdropBorderColor(1, 0.2, 0.2, 1) end)
     f.clearOffer:SetScript("OnLeave", function() this:SetBackdropBorderColor(0.2, 0.2, 0.2, 1) end)
 
-
     f.SetOffer = function(offerID, offer)
+        --[[if not f.itemNameFrame then
+            f.itemNameFrame = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            f.itemNameFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
+            f.itemNameFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", xRight - halfPadding, 0)
+            f.itemNameFrame:SetJustifyH("LEFT")
+            f.itemNameFrame:SetJustifyV("MIDDLE")
+            f.itemNameFrame:SetTextColor(1, 1, 1)
+        end]]
+
         f.offer = offer
         f:SetID(offerID)
         f.RefreshFrame()
@@ -189,91 +213,49 @@ function CreateWTSFrame(index, parent)
     f.RefreshFrame = function()
         local lvlMin = f.offer.levelMin or 0
         local lvlMax = f.offer.levelMax or 0
-        f.levelRangeFrame:SetText("[" .. f.offer.levelMin .. " - " .. f.offer.levelMax .. "]")
-        f.itemNameFrame:SetText(f.offer.content)
-        f.sellerFrame:SetText(f.offer.username)
+        --f.levelRangeFrame:SetText("[" .. f.offer.levelMin .. " - " .. f.offer.levelMax .. "]")
+        --f.itemNameFrame:SetText(f.offer.content)
+        --f.sellerFrame:SetText(f.offer.username)
+        
+        -- TODO: Remove previous frames
+        f.contentFrame.itemFrames = {}
+
+        local iItems = 0
+        --print(f.offer.content)
+        for itemString, itemLink in string.gmatch(f.offer.content, "(|c%x%x%x%x%x%x%x%x|H(item:%d+:%d+:%d+:%d+)|h%[[%a%s]+%]|h|r)") do
+            --print(itemLink)
+            table.insert(f.contentFrame.itemFrames, CreateFrame("Button", nil, f.contentFrame))
+            f.contentFrame.itemFrames[iItems + 1]:SetHeight(30)
+            f.contentFrame.itemFrames[iItems + 1]:SetWidth(50)
+            f.contentFrame.itemFrames[iItems + 1]:SetPoint("LEFT", f.contentFrame, "LEFT", iItems * 50 + 2, 0)
+            --f.contentFrame.itemFrames[iItems + 1]:SetPoint("RIGHT", f.contentFrame, "LEFT", iItems * 50 + 50 - 2, 0)
+            f.contentFrame.itemFrames[iItems + 1]:SetBackdrop(backdrop)
+            f.contentFrame.itemFrames[iItems + 1]:SetBackdropColor(0, 1, 0, 0.5)
+            f.contentFrame.itemFrames[iItems + 1]:SetBackdropBorderColor(0.2, 0.2, 0.2, 1)
+            f.contentFrame.itemFrames[iItems + 1].itemLink = itemLink
+
+            local itemFrameText = f.contentFrame.itemFrames[iItems + 1]:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            itemFrameText:SetAllPoints(f.contentFrame.itemFrames[iItems + 1])
+            itemFrameText:SetJustifyH("LEFT")
+            itemFrameText:SetJustifyV("MIDDLE")
+            itemFrameText:SetText(itemString)
+            --itemFrameText:SetTextColor(0.7, 0.2, 0.2)
+
+            f.contentFrame.itemFrames[iItems + 1]:SetScript("OnEnter", function()
+                GameTooltip:SetOwner(this, ANCHOR_BOTTOMLEFT)
+                GameTooltip:SetHyperlink(this.itemLink)
+                GameTooltip:Show()
+            end)
+            f.contentFrame.itemFrames[iItems + 1]:SetScript("OnLeave", function() 
+                GameTooltip:Hide()
+            end)
+
+            iItems = iItems + 1
+        end
     end
-    --f:Hide()
-    --f:SetID(i)
 
-    --f.btype = resultType
-    --f.pfResultButton = true
-
-    --f.tex = f:CreateTexture("BACKGROUND")
-    --f.tex:SetAllPoints(f)
-    --f.tex:SetTexture(1,1,1, ( compat.mod(i,2) == 1 and .02 or .04))
-
-    -- text properties
-    --f.text = f:CreateFontString("Caption", "LOW", "GameFontWhite")
-    --f.text:SetFont(pfUI.font_default, pfUI_config.global.font_size, "OUTLINE")
-    --f.text:SetAllPoints(f)
-    --f.text:SetJustifyH("LEFT")
-    --f.idText = f:CreateFontString("ID", "LOW", "GameFontDisable")
-    --f.idText:SetPoint("LEFT", f, "LEFT", button_height, 0)
-
-    --[[
-  -- favourite button
-  f.fav = CreateFrame("Button", nil, f)
-  f.fav:SetHitRectInsets(-3,-3,-3,-3)
-  f.fav:SetPoint("LEFT", 0, 0)
-  f.fav:SetWidth(16)
-  f.fav:SetHeight(16)
-  f.fav.icon = f.fav:CreateTexture("OVERLAY")
-  f.fav.icon:SetTexture(pfQuestConfig.path.."\\img\\fav")
-  f.fav.icon:SetAllPoints(f.fav)
-
-  -- faction icons
-  if resultType ~= "items" then
-    f.factionA = f:CreateTexture("OVERLAY")
-    f.factionA:SetTexture(pfQuestConfig.path.."\\img\\icon_alliance")
-    f.factionA:SetWidth(16)
-    f.factionA:SetHeight(16)
-    f.factionA:SetPoint("RIGHT", -5, 0)
-    f.factionH = f:CreateTexture("OVERLAY")
-    f.factionH:SetTexture(pfQuestConfig.path.."\\img\\icon_horde")
-    f.factionH:SetWidth(16)
-    f.factionH:SetHeight(16)
-    f.factionH:SetPoint("RIGHT", -24, 0)
-  end
-
-  -- drop, loot, vendor buttons
-  if resultType == "items" then
-    local buttons = {
-      ["U"] = { ["offset"] = -5,  ["icon"] = "icon_npc",    ["parameter"] = "id",   },
-      ["O"] = { ["offset"] = -24, ["icon"] = "icon_object", ["parameter"] = "id",   },
-      ["V"] = { ["offset"] = -43, ["icon"] = "icon_vendor", ["parameter"] = "name", },
-    }
-
-    for button, settings in pairs(buttons) do
-      f[button] = CreateFrame("Button", nil, f)
-      f[button]:SetHitRectInsets(-3,-3,-3,-3)
-      f[button]:SetPoint("RIGHT", settings.offset, 0)
-      f[button]:SetWidth(16)
-      f[button]:SetHeight(16)
-
-      f[button].buttonType = button
-      f[button].parameter = settings.parameter
-
-      f[button].icon = f[button]:CreateTexture("OVERLAY")
-      f[button].icon:SetAllPoints(f[button])
-      f[button].icon:SetTexture(pfQuestConfig.path.."\\img\\"..settings.icon)
-
-      f[button]:SetScript("OnEnter", ResultButtonEnterSpecial)
-      f[button]:SetScript("OnLeave", ResultButtonLeaveSpecial)
-      f[button]:SetScript("OnClick", ResultButtonClickSpecial)
-    end
-  end
-]]
-    -- bind functions
-    --f.Reload = ResultButtonReload
-    --f:SetScript("OnLeave", ResultButtonLeave)
-    --:SetScript("OnEnter", ResultButtonEnter)
-    --[[
-    f:SetScript("OnClick", function()
-        DEFAULT_CHAT_FRAME:AddMessage("Button " .. f:GetID())
-    end)
-    ]]
-    --f.fav:SetScript("OnClick", ResultButtonClickFav)
+    --f:SetScript("OnEnter", WTSFrameEnter)
+    --f:SetScript("OnLeave", WTSFrameLeave)
 
     return f
 end
@@ -359,8 +341,8 @@ function RefreshBrowser()
             break
         end
 
-        local searchTextFilter = (not Browser.searchText or string.len(Browser.searchText) == 0)    -- No search text
-            or (string.find(string.lower(offer.content), string.lower(Browser.searchText))) -- Search text match the offer
+        local searchTextFilter = (not Browser.searchText or string.len(Browser.searchText) == 0) -- No search text
+            or (string.find(string.lower(offer.content), string.lower(Browser.searchText)))      -- Search text match the offer
         local levelCheckFilter = (not Browser.levelCheck)
             or (UnitLevel("player") >= offer.levelMin and UnitLevel("player") <= offer.levelMax)
 

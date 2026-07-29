@@ -22,6 +22,14 @@ if not string.gmatch then
     string.gmatch = string.gfind
 end
 
+print = function(s)
+    if s == nil then
+        DEFAULT_CHAT_FRAME:AddMessage("nil")
+    else
+        DEFAULT_CHAT_FRAME:AddMessage(s)
+    end
+end
+
 EmporiumDB = EmporiumDB or {}
 
 -- ================================================================
@@ -393,6 +401,13 @@ SlashCmdList["EMPORIUM"] = function(msg)
     if cmd == "browser" then
         Browser:Show()
 
+    elseif string.sub(cmd, 1, 5) == "item " then
+        local item = string.gsub(cmd, "^item%s+", "")
+        print(item)
+
+    elseif cmd == "hammer" then
+        print("|cffff00ff|Hitem:15445:0:0:0|h[test]")
+    
     elseif cmd == "clean" then
         RemoveOldOffers(EmporiumDB.Market.wts)
         RemoveOldOffers(EmporiumDB.Market.wtb)
