@@ -222,17 +222,10 @@ function CreateWTSFrame(index, parent)
 
         local iItems = 0
         --print(f.offer.content)
+        local xLeft = 0
         for itemString, itemLink in string.gmatch(f.offer.content, "(|c%x%x%x%x%x%x%x%x|H(item:%d+:%d+:%d+:%d+)|h%[[%a%s]+%]|h|r)") do
             --print(itemLink)
             table.insert(f.contentFrame.itemFrames, CreateFrame("Button", nil, f.contentFrame))
-            f.contentFrame.itemFrames[iItems + 1]:SetHeight(30)
-            f.contentFrame.itemFrames[iItems + 1]:SetWidth(50)
-            f.contentFrame.itemFrames[iItems + 1]:SetPoint("LEFT", f.contentFrame, "LEFT", iItems * 50 + 2, 0)
-            --f.contentFrame.itemFrames[iItems + 1]:SetPoint("RIGHT", f.contentFrame, "LEFT", iItems * 50 + 50 - 2, 0)
-            f.contentFrame.itemFrames[iItems + 1]:SetBackdrop(backdrop)
-            f.contentFrame.itemFrames[iItems + 1]:SetBackdropColor(0, 1, 0, 0.5)
-            f.contentFrame.itemFrames[iItems + 1]:SetBackdropBorderColor(0.2, 0.2, 0.2, 1)
-            f.contentFrame.itemFrames[iItems + 1].itemLink = itemLink
 
             local itemFrameText = f.contentFrame.itemFrames[iItems + 1]:CreateFontString(nil, "OVERLAY", "GameFontNormal")
             itemFrameText:SetAllPoints(f.contentFrame.itemFrames[iItems + 1])
@@ -240,6 +233,16 @@ function CreateWTSFrame(index, parent)
             itemFrameText:SetJustifyV("MIDDLE")
             itemFrameText:SetText(itemString)
             --itemFrameText:SetTextColor(0.7, 0.2, 0.2)
+
+            local stringWidth = itemFrameText:GetStringWidth() + 5
+            f.contentFrame.itemFrames[iItems + 1]:SetHeight(30)
+            f.contentFrame.itemFrames[iItems + 1]:SetWidth(stringWidth)
+            f.contentFrame.itemFrames[iItems + 1]:SetPoint("LEFT", f.contentFrame, "LEFT", xLeft, 0)
+            --f.contentFrame.itemFrames[iItems + 1]:SetPoint("RIGHT", f.contentFrame, "LEFT", iItems * 50 + 50 - 2, 0)
+            f.contentFrame.itemFrames[iItems + 1]:SetBackdrop(backdrop)
+            f.contentFrame.itemFrames[iItems + 1]:SetBackdropColor(0, 1, 0, 0.5)
+            f.contentFrame.itemFrames[iItems + 1]:SetBackdropBorderColor(0.2, 0.2, 0.2, 1)
+            f.contentFrame.itemFrames[iItems + 1].itemLink = itemLink
 
             f.contentFrame.itemFrames[iItems + 1]:SetScript("OnEnter", function()
                 GameTooltip:SetOwner(this, ANCHOR_BOTTOMLEFT)
@@ -251,6 +254,7 @@ function CreateWTSFrame(index, parent)
             end)
 
             iItems = iItems + 1
+            xLeft = xLeft + stringWidth
         end
     end
 
