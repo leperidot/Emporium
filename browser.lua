@@ -154,8 +154,8 @@ function CreateWTSFrame(index, parent)
 
     f.itemIcons = {}
 
-    xLeft = xRight + 100
-    xRight = xRight + OFFER_FRAME_WIDTH * 0.50
+    xLeft = xRight
+    xRight = xRight + OFFER_FRAME_WIDTH * 0.68
 
     f.itemNameFrame = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     f.itemNameFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
@@ -187,7 +187,7 @@ function CreateWTSFrame(index, parent)
 
 
     xLeft = xRight
-    xRight = xRight + OFFER_FRAME_WIDTH * 0.14
+    xRight = xRight + OFFER_FRAME_WIDTH * 0.12
 
     f.sellerFrame = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     f.sellerFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
@@ -245,7 +245,7 @@ function CreateWTSFrame(index, parent)
             local iconFrame = table.remove(itemIconPool) or CreateItemIconFrame()
             table.insert(f.itemIcons, iconFrame)
             iconFrame:SetParent(f)
-            iconFrame:SetPoint("Left", f, "Left", 100 + (iconFrame:GetWidth() + 3) * (idx - 1), 0)
+            iconFrame:SetPoint("Left", f, "Left", 65 + (iconFrame:GetWidth() + 3) * (idx - 1), 0)
             local itemLink, itemID = string.match(itemText, "|H(item:(%d+):%d+:%d+:%d+)|h([%w%s%p%[%]]-)|h")
             local itemName, _, itemQuality, _, itemType, itemSubType, _, _, itemTexture, _ = GetItemInfo(itemID)
             iconFrame.itemText = itemText
@@ -253,6 +253,9 @@ function CreateWTSFrame(index, parent)
             iconFrame.tex:SetTexture(itemTexture)
             iconFrame:Show()
         end
+
+        local itemCount = table.getn(items)
+        f.itemNameFrame:SetPoint("TOPLEFT", f, "TOPLEFT", 65 + (30 + 3) * (itemCount), 0)
     end
     --f:Hide()
     --f:SetID(i)
