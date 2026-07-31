@@ -104,7 +104,11 @@ local function DebugHyperlinkClick(arg1, arg2, arg3, arg4)
   if arg3 == nil then print("arg3 is nil") end
 end
 
-ChatFrame1:SetScript("OnHyperlinkClick", DebugHyperlinkClick);
+--[[ChatFrame1:SetScript("OnHyperlinkClick", function ()
+    print(arg1)
+    print(arg2)
+    print(arg3)
+end);]]
 
 local once = true
 
@@ -139,20 +143,24 @@ function CreateWTSFrame(index, parent)
     f.itemNameFrame:SetJustifyV("MIDDLE")
     f.itemNameFrame:SetTextColor(1, 1, 1)]]
 
-    f.itemNameFrame = CreateFrame("ScrollingMessageFrame", nil, f)
+    f.itemNameFrame = CreateFrame("SimpleHTML", nil, f)
     f.itemNameFrame:SetFont('Fonts\\FRIZQT__.TTF', 11);
     f.itemNameFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
     f.itemNameFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", xRight - halfPadding, 0)
-    f.itemNameFrame:SetJustifyH("LEFT")
-    f.itemNameFrame:SetJustifyV("MIDDLE")
-    f.itemNameFrame:SetTextColor(1, 1, 1)
+    f.itemNameFrame:SetBackdrop(backdrop)
+    f.itemNameFrame:SetBackdropColor(1, 0, 0, 1)
 
-    --f.itemNameFrame:SetScript("OnHyperlinkEnter", ChatFrame_OnHyperlinkShow)
-    f.itemNameFrame:SetScript("OnHyperlinkClick", function (frame, e)
-        TEST = e
-        print(e)
+    f.itemNameFrame:SetScript("OnHyperlinkClick", function ()
+        ChatFrame_OnHyperlinkShow(arg1, arg2, arg3)
     end)
-    --f.itemNameFrame:SetScript("OnHyperlinkLeave", ChatFrame_OnHyperlinkHide)
+    f.itemNameFrame:SetScript("OnHyperlinkEnter", function ()
+        GameTooltip:SetOwner(this, "ANCHOR_RIGHT", -10, -5)
+        GameTooltip:SetHyperlink(arg1)
+        GameTooltip:Show()
+    end)
+    f.itemNameFrame:SetScript("OnHyperlinkLeave", function ()
+        GameTooltip:Hide()
+    end)
 
 
     xLeft = xRight
@@ -220,8 +228,7 @@ function CreateWTSFrame(index, parent)
         local lvlMin = f.offer.levelMin or 0
         local lvlMax = f.offer.levelMax or 0
         f.levelRangeFrame:SetText("[" .. f.offer.levelMin .. " - " .. f.offer.levelMax .. "]")
-        --f.itemNameFrame:SetText(f.offer.content)
-        f.itemNameFrame:AddMessage(f.offer.content)
+        f.itemNameFrame:SetText("<html><body><p>" .. f.offer.content .. "</p></body></html>")
         f.sellerFrame:SetText(f.offer.username)
     end
     --f:Hide()

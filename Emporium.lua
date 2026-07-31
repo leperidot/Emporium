@@ -276,7 +276,6 @@ end
 -- 3. Store offer to be displayed later
 
 local function ProcessHCMessage(sender, msg)
-    StoreOffer(sender, msg, msg, 1, 80, time())
     -- Ignore non-trade messages
     local isWTS, parsedMsg = ParseWTS(msg)
     if not isWTS then return end
