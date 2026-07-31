@@ -96,14 +96,15 @@ local BROWSER_OFFER_LIST_WIDTH = BROWSER_WIDTH - 40
 local OFFER_FRAME_WIDTH = BROWSER_OFFER_LIST_WIDTH - 2 * button_margin
 
 
-local function DebugHyperlinkClick(arg1, arg2, arg3, arg4, arg5)
-  print("OnHyperlinkClick args:", arg1, arg2, arg3, arg4, arg5)
+
+local function DebugHyperlinkClick(arg1, arg2, arg3, arg4)
+  print("OnHyperlinkClick args:", arg1, arg2, arg3, arg4)
   if not arg1 then print("arg1 is nil") end
   if arg2 == nil then print("arg2 is nil") end
   if arg3 == nil then print("arg3 is nil") end
 end
 
---ChatFrame1:SetScript("OnHyperlinkClick", ChatFrame_OnHyperlinkShow);
+ChatFrame1:SetScript("OnHyperlinkClick", DebugHyperlinkClick);
 
 local once = true
 function CreateWTSFrame(index, parent)
@@ -144,13 +145,7 @@ function CreateWTSFrame(index, parent)
     f.itemNameFrame:SetJustifyV("MIDDLE")
     f.itemNameFrame:SetTextColor(1, 1, 1)
 
-    f.itemNameFrame:SetScript("OnHyperlinkEnter", function(frame, link, text, button)
-        print(frame)
-        print(link)
-        print(text)
-        print(button)
-    end)
-
+    f.itemNameFrame:SetScript("OnHyperlinkEnter", ChatFrame_OnHyperlinkShow)
     f.itemNameFrame:SetScript("OnHyperlinkClick", ChatFrame_OnHyperlinkShow)
 
 
@@ -381,9 +376,10 @@ Browser.tab.buttons = {}
 
 local MAX_OFFER_COUNT = 256
 function RefreshBrowser()
+
     Browser.tab.list:Hide()
     local iFrame = 0
-    for iOffer, offer in EmporiumDB.Market.wts do
+    for iOffer, offer in ipairs(EmporiumDB.Market.wts) do
         if iFrame >= MAX_OFFER_COUNT then
             DEFAULT_CHAT_FRAME:AddMessage("|c00ff0000[Emporium]: Browser full")
             break

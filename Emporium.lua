@@ -44,7 +44,7 @@ local debugMode    = false   -- Print debug messages
 -- EmporiumDB.levelCache = { ["PlayerName"] = level, ... }
 local LEVEL_CACHE_RANGE = 5  -- +/- range applied when using cached level
 
-local OFFER_MAX_LIFE = 3600 * 8 -- 8 hours
+local OFFER_MAX_LIFE = 3600 * 1600 -- 8 hours
 
 -- ================================================================
 -- HELPER FUNCTIONS
@@ -233,7 +233,8 @@ end
 -- ================================================================
 
 local function StoreOffer(username, content, originalMessage, levelMin, levelMax, epoch)
-    for idx, offer in EmporiumDB.Market.wts do
+    
+    --[[for idx, offer in EmporiumDB.Market.wts do
         if offer.username == username and offer.content == content then
             EmporiumDB.Market.wts[idx].levelMin = levelMin
             EmporiumDB.Market.wts[idx].levelMax = levelMax
@@ -241,7 +242,7 @@ local function StoreOffer(username, content, originalMessage, levelMin, levelMax
             RefreshBrowser()
             return
         end
-    end
+    end]]
 
     table.insert(EmporiumDB.Market.wts, {
         username = username,
@@ -251,7 +252,6 @@ local function StoreOffer(username, content, originalMessage, levelMin, levelMax
         levelMax = levelMax,
         epoch = epoch,
     })
-
     RefreshBrowser()
 end
 
@@ -276,6 +276,7 @@ end
 -- 3. Store offer to be displayed later
 
 local function ProcessHCMessage(sender, msg)
+    StoreOffer(sender, msg, msg, 1, 80, time())
     -- Ignore non-trade messages
     local isWTS, parsedMsg = ParseWTS(msg)
     if not isWTS then return end
@@ -429,6 +430,11 @@ SlashCmdList["EMPORIUM"] = function(msg)
     elseif cmd == "cache clear" then
         EmporiumDB.levelCache = {}
         DEFAULT_CHAT_FRAME:AddMessage("|cffffd100Emporium:|r Level cache cleared.")
+    
+    elseif cmd == "browse" then
+        for index, offer in ipairs(EmporiumDB.Market.wts) do
+            DEFAULT_CHAT_FRAME:AddMessage("<" .. offer.username .. ">: " .. offer.content .. "[" .. offer.levelMin .. "-" .. offer.levelMax .. "]")
+        end
 
     elseif cmd == "help" or cmd == "" then
         DEFAULT_CHAT_FRAME:AddMessage("|cffffd100Emporium:|r To get help, type |cffffffff/emporium help |cff00ffff<command>|r for details.")
