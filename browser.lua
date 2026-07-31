@@ -107,6 +107,8 @@ end
 ChatFrame1:SetScript("OnHyperlinkClick", DebugHyperlinkClick);
 
 local once = true
+
+TEST = {test = 1}
 function CreateWTSFrame(index, parent)
     local f = CreateFrame("Frame", nil, parent)
 
@@ -145,8 +147,12 @@ function CreateWTSFrame(index, parent)
     f.itemNameFrame:SetJustifyV("MIDDLE")
     f.itemNameFrame:SetTextColor(1, 1, 1)
 
-    f.itemNameFrame:SetScript("OnHyperlinkEnter", ChatFrame_OnHyperlinkShow)
-    f.itemNameFrame:SetScript("OnHyperlinkClick", ChatFrame_OnHyperlinkShow)
+    --f.itemNameFrame:SetScript("OnHyperlinkEnter", ChatFrame_OnHyperlinkShow)
+    f.itemNameFrame:SetScript("OnHyperlinkClick", function (frame, e)
+        TEST = e
+        print(e)
+    end)
+    --f.itemNameFrame:SetScript("OnHyperlinkLeave", ChatFrame_OnHyperlinkHide)
 
 
     xLeft = xRight
