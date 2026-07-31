@@ -9,6 +9,43 @@ local backdrop = {
 
 local BROWSER_WIDTH = 780
 
+local itemIconPool = {}
+local itemIconPoolnextId = 0
+
+local CreateItemIconFrame = function ()
+    local f = CreateFrame("Button", nil, nil)
+    f:SetHeight(30)
+    f:SetWidth(30)
+
+    f.tex = f:CreateTexture()
+    f.tex:SetAllPoints(f)
+    f.tex:SetTexture("interface/icons/inv_mushroom_11")
+
+    f:SetBackdrop(backdrop)
+    f:SetBackdropColor(0, 0, 0, 1)
+    f:SetBackdropBorderColor(0.2, 0.2, 0.2, 1)
+
+    f:SetScript("OnClick", function ()
+        if f.itemLink then
+            ChatFrame_OnHyperlinkShow(f.itemLink, f.itemText, arg1)
+        end
+    end)
+
+    f:SetScript("OnEnter", function ()
+        if f.itemLink then
+            GameTooltip:SetOwner(this, "ANCHOR_RIGHT", 0, 0)
+            GameTooltip:SetHyperlink(f.itemLink)
+            GameTooltip:Show()
+        end
+    end)
+
+    f:SetScript("OnLeave", function ()
+        GameTooltip:Hide()
+    end)
+
+    return f
+end
+
 CreateScrollFrame = --[[pfUI.api.CreateScrollFrame or]] function(name, parent)
     local f = CreateFrame("ScrollFrame", name, parent)
     -- create slider
@@ -115,8 +152,10 @@ function CreateWTSFrame(index, parent)
     f.levelRangeFrame:SetJustifyV("CENTER")
     f.levelRangeFrame:SetTextColor(1, 1, 1)
 
-    xLeft = xRight
-    xRight = xRight + OFFER_FRAME_WIDTH * 0.66
+    f.itemIcons = {}
+
+    xLeft = xRight + 100
+    xRight = xRight + OFFER_FRAME_WIDTH * 0.50
 
     f.itemNameFrame = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     f.itemNameFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
@@ -182,6 +221,14 @@ function CreateWTSFrame(index, parent)
 
 
     f.SetOffer = function(offerID, offer)
+        while true do
+            local iconFrame = table.remove(f.itemIcons)
+            if not iconFrame then break end
+            iconFrame:Hide()
+            iconFrame:SetParent(nil)
+            table.insert(itemIconPool, iconFrame)
+        end
+
         f.offer = offer
         f:SetID(offerID)
         f.RefreshFrame()
@@ -192,6 +239,20 @@ function CreateWTSFrame(index, parent)
         f.levelRangeFrame:SetText("[" .. f.offer.levelMin .. " - " .. f.offer.levelMax .. "]")
         f.itemNameFrame:SetText(f.offer.content)
         f.sellerFrame:SetText(f.offer.username)
+
+        local items = GetItemsFromString(f.offer.content)
+        for idx, itemText in ipairs(items) do
+            local iconFrame = table.remove(itemIconPool) or CreateItemIconFrame()
+            table.insert(f.itemIcons, iconFrame)
+            iconFrame:SetParent(f)
+            iconFrame:SetPoint("Left", f, "Left", 100 + (iconFrame:GetWidth() + 3) * (idx - 1), 0)
+            local itemLink, itemID = string.match(itemText, "|H(item:(%d+):%d+:%d+:%d+)|h([%w%s%p%[%]]-)|h")
+            local itemName, _, itemQuality, _, itemType, itemSubType, _, _, itemTexture, _ = GetItemInfo(itemID)
+            iconFrame.itemText = itemText
+            iconFrame.itemLink = itemLink
+            iconFrame.tex:SetTexture(itemTexture)
+            iconFrame:Show()
+        end
     end
     --f:Hide()
     --f:SetID(i)

@@ -258,6 +258,14 @@ local function RemoveOldOffers(list)
     end
 end
 
+
+function GetItemsFromString(s)
+    local items = {}
+    for item in string.gmatch(s, "|c%x%x%x%x%x%x%x%x|Hitem:%d+:%d+:%d+:%d+|h[%w%s%p%[%]]-|h|r") do
+        table.insert(items, item)
+    end
+    return items
+end
 -- ================================================================
 -- CORE MESSAGE PROCESSOR
 -- ================================================================
