@@ -95,6 +95,17 @@ local button_margin = 5
 local BROWSER_OFFER_LIST_WIDTH = BROWSER_WIDTH - 40
 local OFFER_FRAME_WIDTH = BROWSER_OFFER_LIST_WIDTH - 2 * button_margin
 
+
+local function DebugHyperlinkClick(arg1, arg2, arg3, arg4, arg5)
+  print("OnHyperlinkClick args:", arg1, arg2, arg3, arg4, arg5)
+  if not arg1 then print("arg1 is nil") end
+  if arg2 == nil then print("arg2 is nil") end
+  if arg3 == nil then print("arg3 is nil") end
+end
+
+--ChatFrame1:SetScript("OnHyperlinkClick", ChatFrame_OnHyperlinkShow);
+
+local once = true
 function CreateWTSFrame(index, parent)
     local f = CreateFrame("Frame", nil, parent)
 
@@ -118,12 +129,30 @@ function CreateWTSFrame(index, parent)
     xLeft = xRight
     xRight = xRight + OFFER_FRAME_WIDTH * 0.66
 
-    f.itemNameFrame = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    --[[f.itemNameFrame = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    f.itemNameFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
+    f.itemNameFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", xRight - halfPadding, 0)
+    f.itemNameFrame:SetJustifyH("LEFT")
+    f.itemNameFrame:SetJustifyV("MIDDLE")
+    f.itemNameFrame:SetTextColor(1, 1, 1)]]
+
+    f.itemNameFrame = CreateFrame("ScrollingMessageFrame", nil, f)
+    f.itemNameFrame:SetFont('Fonts\\FRIZQT__.TTF', 11);
     f.itemNameFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
     f.itemNameFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", xRight - halfPadding, 0)
     f.itemNameFrame:SetJustifyH("LEFT")
     f.itemNameFrame:SetJustifyV("MIDDLE")
     f.itemNameFrame:SetTextColor(1, 1, 1)
+
+    f.itemNameFrame:SetScript("OnHyperlinkEnter", function(frame, link, text, button)
+        print(frame)
+        print(link)
+        print(text)
+        print(button)
+    end)
+
+    f.itemNameFrame:SetScript("OnHyperlinkClick", ChatFrame_OnHyperlinkShow)
+
 
     xLeft = xRight
     xRight = xRight + OFFER_FRAME_WIDTH * 0.08
@@ -190,7 +219,8 @@ function CreateWTSFrame(index, parent)
         local lvlMin = f.offer.levelMin or 0
         local lvlMax = f.offer.levelMax or 0
         f.levelRangeFrame:SetText("[" .. f.offer.levelMin .. " - " .. f.offer.levelMax .. "]")
-        f.itemNameFrame:SetText(f.offer.content)
+        --f.itemNameFrame:SetText(f.offer.content)
+        f.itemNameFrame:AddMessage(f.offer.content)
         f.sellerFrame:SetText(f.offer.username)
     end
     --f:Hide()
@@ -359,8 +389,8 @@ function RefreshBrowser()
             break
         end
 
-        local searchTextFilter = (not Browser.searchText or string.len(Browser.searchText) == 0)    -- No search text
-            or (string.find(string.lower(offer.content), string.lower(Browser.searchText))) -- Search text match the offer
+        local searchTextFilter = (not Browser.searchText or string.len(Browser.searchText) == 0) -- No search text
+            or (string.find(string.lower(offer.content), string.lower(Browser.searchText)))      -- Search text match the offer
         local levelCheckFilter = (not Browser.levelCheck)
             or (UnitLevel("player") >= offer.levelMin and UnitLevel("player") <= offer.levelMax)
 

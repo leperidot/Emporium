@@ -22,6 +22,14 @@ if not string.gmatch then
     string.gmatch = string.gfind
 end
 
+print = function (s)
+    if s then
+        DEFAULT_CHAT_FRAME:AddMessage(s)
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("nil")
+    end
+end
+
 EmporiumDB = EmporiumDB or {}
 
 -- ================================================================
