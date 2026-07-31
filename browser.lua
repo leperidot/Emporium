@@ -147,8 +147,6 @@ function CreateWTSFrame(index, parent)
     f.itemNameFrame:SetFont('Fonts\\FRIZQT__.TTF', 11);
     f.itemNameFrame:SetPoint("TOPLEFT", f, "TOPLEFT", xLeft + halfPadding, 0)
     f.itemNameFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMLEFT", xRight - halfPadding, 0)
-    f.itemNameFrame:SetBackdrop(backdrop)
-    f.itemNameFrame:SetBackdropColor(1, 0, 0, 1)
 
     f.itemNameFrame:SetScript("OnHyperlinkClick", function ()
         ChatFrame_OnHyperlinkShow(arg1, arg2, arg3)
