@@ -19,11 +19,8 @@ local CreateItemIconFrame = function ()
 
     f.tex = f:CreateTexture()
     f.tex:SetAllPoints(f)
-    f.tex:SetTexture("interface/icons/inv_mushroom_11")
-
-    f:SetBackdrop(backdrop)
-    f:SetBackdropColor(0, 0, 0, 1)
-    f:SetBackdropBorderColor(0.2, 0.2, 0.2, 1)
+    --f:SetBackdropColor(0, 0, 0, 1)
+    --f:SetBackdropBorderColor(0.2, 0.2, 0.2, 1)
 
     f:SetScript("OnClick", function ()
         if f.itemLink then
@@ -251,6 +248,7 @@ function CreateWTSFrame(index, parent)
             iconFrame.itemText = itemText
             iconFrame.itemLink = itemLink
             iconFrame.tex:SetTexture(itemTexture)
+            --iconFrame.tex:SetTexCoord(.08, .92, .08, .92)
             iconFrame:Show()
         end
 
